@@ -78,35 +78,65 @@
                         {
                             text:'Up',
                             listeners: {
-                                'click': function (item,a,b,c,d) {
+                                'click': function () {
                                     // var sm = grid.getSelectionModel();
-                                    console.log(item)
-                                    console.log(a)
-                                    console.log(b)
-                                    console.log(c)
+                                    var selected = grid.getSelectionModel().getSelections()
+                                    var row = selected.length === 0 ? 0 : grid.store.data.keys.indexOf(selected[0].id)
                                     // var cell = sm.getSelectedCell();
-                                    console.log('up')
+                                    if(row){
+                                        for(var i=row; i<selected.length+row; i++){
+                                            var p = store.getAt(i);
+                                            store.remove(p)
+                                            store.insert(i-1,p)
+                                        }
+                                    }
                                 }
                             }
                         }, {
                             text:'Down',
                             listeners: {
                                 'click': function () {
-                                    console.log('down')
+                                    var selected = grid.getSelectionModel().getSelections()
+                                    var row = selected.length === 0 ? 0 : grid.store.data.keys.indexOf(selected[0].id)
+                                    if(row<2){
+                                        for(var i=row; i<selected.length+row; i++){
+                                            var p = store.getAt(i);
+                                            store.remove(p)
+                                            store.insert(i+1,p)
+                                        }
+                                    }
                                 }
                             }
                         }, {
                             text:'First',
                             listeners: {
                                 'click': function () {
-                                    console.log('first')
+                                    var selected = grid.getSelectionModel().getSelections()
+                                    var row = selected.length === 0 ? 0 : grid.store.data.keys.indexOf(selected[0].id)
+                                    // var cell = sm.getSelectedCell();
+                                    if(row){
+                                        for(var i=row; i<selected.length+row; i++){
+                                            var p = store.getAt(i);
+                                            store.remove(p)
+                                            store.insert(i-row,p)
+                                        }
+                                    }
                                 }
                             }
                         }, {
                             text:'Last',
                             listeners: {
                                 'click': function () {
-                                    console.log('last')
+                                    var selected = grid.getSelectionModel().getSelections()
+                                    var row = selected.length === 0 ? 0 : grid.store.data.keys.indexOf(selected[0].id)
+                                    // var cell = sm.getSelectedCell();
+                                    if(row<2){
+                                        for(var i=row; i<selected.length+row; i++){
+                                            var p = store.getAt(i);
+                                            store.remove(p)
+                                            store.insert(2,p)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -116,9 +146,6 @@
 
             Ext.get('grid').on('contextmenu', function (e, a,b,c) {
                 e.preventDefault();
-                console.log(a)
-                console.log(b)
-                console.log(c)
                 contextmenu.showAt(e.getXY());
             })
 
@@ -163,14 +190,10 @@
                                 avatar:'avatar',
                             });
                         }
-                        // console.log(data)
-                        // console.log(p)
+
                         grid.stopEditing();
                         store.insert(row, p);
                         data.splice(row, 0, ['new user','2','male','12','','avatar']);
-                        console.log(data)
-                        // store.reload()
-                        // store.loadData(data);
                         store.load({params: {start: 0, limit: 3}});
                         grid.startEditing(row, 0);
                         grid.view.refresh()
