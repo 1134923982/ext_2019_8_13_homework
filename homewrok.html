@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hello World</title>
+    <link rel="stylesheet" type="text/css" href="./ext/resources/css/ext-all.css" />
+    <!-- LIBS -->
+    <script type="text/javascript" src="./ext/adapter/ext/ext-base.js"></script>
+    <!-- ENDLIBS -->
+    <script type="text/javascript" src="./ext/ext-all.js"></script>
+    <script type="text/javascript" src="./ext/PagingMemoryProxy.js"></script>
+    <script type="text/javascript">
+        Ext.onReady(function(){
+            function renderAvatar(value) {
+                return `<img width="60px" height="30px" src="./image/male.svg"/>`;
+            }
+
+            var sm = new Ext.grid.CheckboxSelectionModel();
+
+            var cm = new Ext.grid.ColumnModel([
+                new Ext.grid.RowNumberer(),
+                sm,
+                {header:'name',dataIndex:'name', sortable: true, editor: new Ext.grid.GridEditor(
+                    new Ext.form.TextField({allowBlank: false})
+                    )},
+                {header:'class',dataIndex:'class', sortable: true, editor: new Ext.grid.GridEditor(
+                        new Ext.form.TextField({allowBlank: false})
+                    )},
+                {header:'sex',dataIndex:'sex', editor: new Ext.grid.GridEditor(
+                        new Ext.form.TextField({allowBlank: false})
+                    )},
+                {header:'age',dataIndex:'age', editor: new Ext.grid.GridEditor(
+                        new Ext.form.TextField({allowBlank: false})
+                    )},
+                {header:'birthday',dataIndex:'birthday', renderer: Ext.util.Format.dateRenderer('Y-m-d'), editor: new Ext.grid.GridEditor(
+                        new Ext.form.DateField({allowBlank: false})
+                    )},
+                {header:'avatar',dataIndex:'avatar', renderer: renderAvatar},
+            ]);
+
+
+            var data = [
+                ['jack','1','male','12','Tue Aug 13 2012 17:19:49 GMT+0800','avatar'],
+                ['alice','2','female','14','Tue Aug 13 2012 17:19:49 GMT+0800','avatar'],
+                ['leo','1','male','15','Tue Aug 13 2012 17:19:49 GMT+0800','avatar'],
+                ['akin','2','male','14','Tue Aug 13 2012 17:19:49 GMT+0800','avatar'],
+                ['will','2','male','14','Tue Aug 13 2012 17:19:49 GMT+0800','avatar']
+            ];
+
+            var store = new Ext.data.GroupingStore({
+                proxy: new Ext.data.PagingMemoryProxy(data),
+                reader: new Ext.data.ArrayReader({}, [
+                    {name: 'name'},
+                    {name: 'class'},
+                    {name: 'sex'},
+                    {name: 'age'},
+                    {name: 'birthday'},
+                    {name: 'avatar'}
+                ]),
+                groupField: 'class',
+                sortInfo: {field: 'class', direction: 'asc'}
+            });
+            store.load({params: {start: 0, limit: 3}});
+            store.clearGrouping()
+            var Record = Ext.data.Record.create([
+                {name: 'name', type: 'string'},
+                {name: 'class', type: 'string'},
+                {name: 'sex', type: 'string'},
+                {name: 'age', type: 'number'},
+                {name: 'birthday', type: 'date'},
+                {name: 'avatar', type: 'string'},
+            ]);
+
+            var contextmenu = new Ext.menu.Menu(
+                {
+                    id:'contextmenu',
+                    items:[
+                        {
+                            text:'Up',
+                            listeners: {
+                                'click': function (item,a,b,c,d) {
+                                    // var sm = grid.getSelectionModel();
+                                    console.log(item)
+                                    console.log(a)
+                                    console.log(b)
+                                    console.log(c)
+                                    // var cell = sm.getSelectedCell();
+                                    console.log('up')
+                                }
+                            }
+                        }, {
+                            text:'Down',
+                            listeners: {
+                                'click': function () {
+                                    console.log('down')
+                                }
+                            }
+                        }, {
+                            text:'First',
+                            listeners: {
+                                'click': function () {
+                                    console.log('first')
+                                }
+                            }
+                        }, {
+                            text:'Last',
+                            listeners: {
+                                'click': function () {
+                                    console.log('last')
+                                }
+                            }
+                        }
+                    ]
+                }
+            )
+
+            Ext.get('grid').on('contextmenu', function (e, a,b,c) {
+                e.preventDefault();
+                console.log(a)
+                console.log(b)
+                console.log(c)
+                contextmenu.showAt(e.getXY());
+            })
+
+            var grid = new Ext.grid.EditorGridPanel({
+                autoHeight: true,
+                renderTo: 'grid',
+                id: grid,
+                store: store,
+                cm: cm,
+                sm: sm,
+                width: 700,
+                view: new Ext.grid.GroupingView(),
+                bbar: new Ext.PagingToolbar({
+                    cls: 'rightPage',
+                    pageSize: 3,
+                    store: store,
+                    displayInfo: true,
+                    displayMsg: '显示第 {0} 条到 {1} 条记录，一共 {2} 条',
+                    emptyMsg: "没有记录"
+                }),
+                tbar: new Ext.Toolbar(['-', {
+                    text: 'add',
+                    handler: function(){
+                        var index = 0;
+                        var p = new Record({
+                            name:'',
+                            class:'',
+                            sex:'',
+                            age:'1234',
+                            birthday:'',
+                            avatar:'avatar',
+                        });
+                        if(sm.hasSelection()){
+                            var selected = grid.getSelectionModel().getSelections()
+                            var row = selected.length === 0 ? 0 : grid.store.data.keys.indexOf(selected[0].id)
+                            p = new Record({
+                                name:'undefined',
+                                class:sm.getSelected().data.class,
+                                sex:'123',
+                                age:'undefined',
+                                birthday:'',
+                                avatar:'avatar',
+                            });
+                        }
+                        // console.log(data)
+                        // console.log(p)
+                        grid.stopEditing();
+                        store.insert(row, p);
+                        data.splice(row, 0, ['new user','2','male','12','','avatar']);
+                        console.log(data)
+                        // store.reload()
+                        // store.loadData(data);
+                        store.load({params: {start: 0, limit: 3}});
+                        grid.startEditing(row, 0);
+                        grid.view.refresh()
+                    }
+                }, '-', {
+                    text: 'delete',
+                    handler: function(){
+
+                        Ext.Msg.confirm('信息', '确定要删除？', function(btn){
+                            if (btn == 'yes') {
+                                var selected = grid.getSelectionModel().getSelections()
+                                console.log(selected)
+                                store.remove(selected)
+                                grid.view.refresh()
+                            }
+                        });
+                    }
+                }, '-', {
+                    id: 'group',
+                    text: 'group',
+                    handler: function(){
+                        if(Ext.getCmp('group').text === 'group'){
+                            Ext.getCmp('group').setText('remove group')
+                            store.groupBy('class')
+
+                        }else{
+                            Ext.getCmp('group').setText('group')
+                            store.clearGrouping()
+                        }
+                    }
+                }])
+            })
+
+
+        });
+    </script>
+
+</head>
+<body>
+<div id="grid"></div>
+</body>
+</html>
